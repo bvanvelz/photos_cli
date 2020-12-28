@@ -10,10 +10,12 @@ A CLI tool to manage photos.
 
 ## Usage
 
-    photos_cli.py [-h] [--list DIR_PATH] [--duplicates DIR_PATH]
+    photos_cli.py [-h] [--paths] [--duplicates] dir_path
+
+    positional arguments:
+      dir_path
 
     optional arguments:
-      -h, --help            show this help message and exit
-      --list DIR_PATH       Find photos in a directory
-      --duplicates DIR_PATH
-                            Find duplicate photos
+      -h, --help        show this help message and exit
+      --paths, -p       find photos in a directory
+      --duplicates, -d  find duplicate photos

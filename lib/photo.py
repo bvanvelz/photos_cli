@@ -2,6 +2,7 @@ import hashlib
 import os
 from PIL import Image, ExifTags
 
+
 def import_photos(dir, photos=[]):
     if not os.path.isdir(dir):
         raise Exception("Invalid directory '{}'".format(dir))
@@ -32,7 +33,8 @@ class Photo():
         self.metadata = None
 
     def __str__(self):
-        return(str(self.__dict__))
+        # remove null values
+        return str({k: v for k, v in self.__dict__.items() if v is not None})
 
     def set_md5(self):
         # TODO: fix

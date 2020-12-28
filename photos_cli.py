@@ -7,53 +7,65 @@ import json
 def commandline_argument_parser():
     """The function parses the command line arguments."""
     # Parse Arguments
-    commandline_parser = argparse.ArgumentParser(description='Manage photos')
-    commandline_parser.add_argument('--list',
+    commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
+    commandline_parser.add_argument('dir_path')
+    commandline_parser.add_argument('--paths', '-p',
+                                    action='store_true',
                                     required=False,
-                                    metavar='DIR_PATH',
-                                    help='Find photos in a directory')
+                                    help='find photos in a directory')
 
-    commandline_parser.add_argument('--duplicates',
+    commandline_parser.add_argument('--duplicates', '-d',
                                     required=False,
-                                    metavar='DIR_PATH',
-                                    help='Find duplicate photos')
+                                    action='store_true',
+                                    help='find duplicate photos')
 
     # Return Parsed Arguments
     return commandline_parser.parse_args()
 
 
-def get_duplicate_photos(path):
-    photos = import_photos(path)
+def duplicate_photos(photos):
     duplicates = []
-    md5s = set()
+    md5s = {}
     for photo in photos:
         photo.set_md5()
         if photo.md5 in md5s:
-            duplicates.append(str(photo))
+            duplicates.append((md5s[photo.md5], photo))
             continue
         else:
-            md5s.add(photo.md5)
+            md5s[photo.md5] = photo
 
     return duplicates
 
-def generate_list(path):
-    photos = []
-    for photo in import_photos(path):
-        photos.append(str(photo))
 
-    return photos
+def get_duplicates(photos):
+    duplicates = []
+    for dup in duplicate_photos(photos):
+        duplicates.append((str(dup[0]), str(dup[1])))
+    return duplicates
+
+
+def get_paths(photos):
+    paths = []
+    for photo in photos:
+        paths.append(photo.path)
+
+    return paths
 
 def main():
     args = commandline_argument_parser()
 
-    if args.list:
-        results = {"list": generate_list(args.list)}
-        print(json.dumps(results))
-        
+    photos = import_photos(args.dir_path)
+
+    results = {"count": len(photos)}
+
+    if args.paths:
+        results["paths"] = get_paths(photos)
 
     if args.duplicates:
-        results = {'duplicates': str(get_duplicate_photos(args.duplicates))}
-        print(json.dumps(results))
+        results['duplicates'] = get_duplicates(photos)
+
+    print(json.dumps(results))
+
 
 if __name__ == "__main__":
     main()
