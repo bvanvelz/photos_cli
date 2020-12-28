@@ -19,6 +19,10 @@ def commandline_argument_parser():
                                     action='store_true',
                                     help='find duplicate photos')
 
+    commandline_parser.add_argument('--metadata', '--info',
+                                    required=False,
+                                    action='store_true',
+                                    help='get photos metadata')
     # Return Parsed Arguments
     return commandline_parser.parse_args()
 
@@ -51,6 +55,13 @@ def get_paths(photos):
 
     return paths
 
+def get_metadata(photos):
+    metadata = []
+    for photo in photos:
+        photo.set_metadata()
+        metadata.append(str(photo))
+    return metadata
+
 def main():
     args = commandline_argument_parser()
 
@@ -63,6 +74,9 @@ def main():
 
     if args.duplicates:
         results['duplicates'] = get_duplicates(photos)
+
+    if args.metadata:
+        results["paths"] = get_metadata(photos)
 
     print(json.dumps(results))
 

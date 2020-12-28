@@ -1,7 +1,7 @@
 import hashlib
 import os
-from PIL import Image, ExifTags
-
+from PIL import Image
+from PIL.ExifTags import TAGS
 
 def import_photos(dir, photos=[]):
     if not os.path.isdir(dir):
@@ -42,8 +42,22 @@ class Photo():
         return self.md5
 
     def set_metadata(self):
-        img = Image.open(self.path)
-        self.metadata = { ExifTags.TAGS[k]: v for k, v in img._getexif().items() if k in ExifTags.TAGS }
+        self.metadata = {}
+
+        image = Image.open(self.path)
+        exifdata = image.getexif()
+
+        # read the image data using PIL
+        for tag_id in exifdata:
+            tag = TAGS.get(tag_id, tag_id)
+            data = exifdata.get(tag_id)
+            if isinstance(data, bytes):
+                try:
+                    data = data.decode()  # utf-8
+                except UnicodeDecodeError:
+                    continue
+            self.metadata[tag] = data
+
         return self.metadata
 
     @staticmethod
