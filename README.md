@@ -3,6 +3,7 @@ A CLI tool to manage photos.
 
 ## Install
 
+    cd photos_cli
     python3 -m venv env
     source env/bin/activate
     pip install -r requirements.txt
