@@ -11,12 +11,12 @@ def commandline_argument_parser():
     commandline_parser.add_argument('--list',
                                     required=False,
                                     metavar='DIR_PATH',
-                                    help='List all photos')
+                                    help='Find photos in a directory')
 
     commandline_parser.add_argument('--duplicates',
                                     required=False,
                                     metavar='DIR_PATH',
-                                    help='List all photos')
+                                    help='Find duplicate photos')
 
     # Return Parsed Arguments
     return commandline_parser.parse_args()
