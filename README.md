@@ -17,6 +17,7 @@ A CLI tool to manage photos.
       dir_path
 
     optional arguments:
-      -h, --help        show this help message and exit
-      --paths, -p       find photos in a directory
-      --duplicates, -d  find duplicate photos
+      -h, --help          show this help message and exit
+      --paths, -p         find photos in a directory
+      --duplicates, -d    find duplicate photos
+      --metadata, --info  get photos metadata
