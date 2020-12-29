@@ -28,6 +28,9 @@ class Photo():
             self.path = path
         else:
             raise Exception("Not a valid photo: '{}'".format(path))
+        self.set_create_time()
+        self.set_last_modified_time()
+        self.set_dimensions()
 
         self.md5 = None
         self.metadata = None
@@ -60,6 +63,24 @@ class Photo():
 
         return self.metadata
 
+    def set_create_time(self):
+        self.create_time = os.path.getctime(self.path)
+        return self.create_time
+
+    def set_last_modified_time(self):
+        self.last_modified_time = os.path.getmtime(self.path)
+        return self.last_modified_time
+
+    def set_dimensions(self):
+        im = Image.open(self.path)
+        self.width, self.height = im.size
+        return self.width, self.height
+
     @staticmethod
     def is_photo(path):  # TODO
+        try:
+            im=Image.open(path)
+        except IOError:
+            return False
+
         return True
