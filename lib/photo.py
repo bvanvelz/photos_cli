@@ -2,12 +2,19 @@ import hashlib
 import os
 from PIL import Image
 from PIL.ExifTags import TAGS
+import re
 
 def import_photos(dir, photos=[]):
-    if not os.path.isdir(dir):
+    if not os.path.isdir(dir) and not os.path.isfile(dir):
         raise Exception("Invalid directory '{}'".format(dir))
 
-    files = os.listdir(dir)
+    if os.path.isdir(dir):
+        files = os.listdir(dir)
+
+    else:
+        dir = re.sub('./', '', dir)
+        files = [dir]
+        dir = './'
 
     for file in files:
         path = os.path.join(dir, file)
