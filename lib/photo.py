@@ -44,11 +44,12 @@ class Photo():
 
     def __str__(self):
         # remove null values
-        return str({k: v for k, v in self.__dict__.items() if v is not None})
+        #return str({k: v for k, v in self.__dict__.items() if v is not None})
+        return str(self.path)
 
     def set_md5(self):
         # TODO: fix
-        self.md5 = hashlib.md5(open(self.path,'rb').read()).hexdigest()
+        self.md5 = hashlib.md5(open(self.path, 'rb').read()).hexdigest()
         return self.md5
 
     def set_metadata(self):
