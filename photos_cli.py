@@ -9,7 +9,7 @@ def commandline_argument_parser():
     # Parse Arguments
     commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
 
-    supported_actions = ['dedup', 'dedupe', 'deduplicate']
+    supported_actions = ['duplicates']
     commandline_parser.add_argument('action',
                                     help="Supported actions: {}".format(
                                         supported_actions))
@@ -47,22 +47,25 @@ def commandline_argument_parser():
     return args
 
 def duplicate_photos(photos):
-    duplicates = []
     md5s = {}
     for photo in photos:
         photo.set_md5()
+        print ("md5={}".format(photo.md5))
         if photo.md5 in md5s:
-            duplicates.append((md5s[photo.md5], photo))
-            continue
+            md5s[photo.md5].append(photo)
         else:
-            md5s[photo.md5] = photo
+            md5s[photo.md5] = [photo]
+
+    duplicates = []
+    for md5 in md5s:
+        if len(md5s[md5]) > 1:
+            duplicates.append(md5s[md5])
 
     return duplicates
 
 def delete_duplicates(duplicates):
     for dup in duplicates:
         dup_paths = sorted(get_paths(dup))
-        print("dup_paths={}".format(dup_paths))
         delete_paths = dup_paths[1:]
         for path in delete_paths:
             if os.system("rm '{}'".format(path)):
@@ -80,7 +83,7 @@ def get_paths(photos):
 def get_duplicates_str(duplicates):
     duplicates_str = []
     for dup in duplicates:
-        duplicates_str.append((str(dup[0]), str(dup[1])))
+        duplicates_str.append(get_paths(dup))
     return duplicates_str
 
 
@@ -116,7 +119,7 @@ def main():
     #if args.paths:
     #    results["paths"] = get_paths(photos)
 
-    if args.action.lower() in ['dedup', 'dedupe', 'deduplicate']:
+    if args.action.lower() in ['duplicates']:
         duplicates = duplicate_photos(photos)
         results['duplicates'] = get_duplicates_str(duplicates)
         if args.delete:
