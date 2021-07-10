@@ -4,135 +4,133 @@ from lib.photo import Photo, import_photos
 import json
 
 
-def commandline_argument_parser():
-    """The function parses the command line arguments."""
-    # Parse Arguments
-    commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
+class PhotosCLI:
 
-    supported_actions = ['duplicates']
-    commandline_parser.add_argument('action',
-                                    help="Supported actions: {}".format(
-                                        supported_actions))
+    def __init__(self):
+        self.args = None
+        self.photos = None
+        self.duplicates = None
 
-    commandline_parser.add_argument('dir_path')
+    def commandline_argument_parser(self):
+        """The function parses the command line arguments."""
+        # Parse Arguments
+        commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
 
-    # commandline_parser.add_argument('--paths', '-p',
-    #                                 action='store_true',
-    #                                 required=False,
-    #                                 help='Find photos in a directory')
+        supported_actions = ['duplicates']
+        commandline_parser.add_argument('action',
+                                        help="Supported actions: {}".format(
+                                            supported_actions))
 
-    commandline_parser.add_argument('--delete', '-d',
-                                    required=False,
-                                    action='store_true',
-                                    help='Delete')
+        commandline_parser.add_argument('dir_path')
 
-    commandline_parser.add_argument('--info',
-                                    required=False,
-                                    action='store_true',
-                                    help='get photos basic info')
+        # commandline_parser.add_argument('--paths', '-p',
+        #                                 action='store_true',
+        #                                 required=False,
+        #                                 help='Find photos in a directory')
 
-    commandline_parser.add_argument('--metadata',
-                                    required=False,
-                                    action='store_true',
-                                    help='get photos metadata') 
+        commandline_parser.add_argument('--delete', '-d',
+                                        required=False,
+                                        action='store_true',
+                                        help='Delete')
 
-    # Return Parsesd Arguments
-    args = commandline_parser.parse_args()
+        commandline_parser.add_argument('--info',
+                                        required=False,
+                                        action='store_true',
+                                        help='get photos basic info')
 
-    if args.action not in supported_actions:
-        raise Exception(("Action '{}' is not supported. "
-                         "Supported actions: {}.").format(
-                             args.action, supported_actions))
+        commandline_parser.add_argument('--metadata',
+                                        required=False,
+                                        action='store_true',
+                                        help='get photos metadata')
 
-    return args
+        # Return Parsesd Arguments
+        args = commandline_parser.parse_args()
 
-def duplicate_photos(photos):
-    md5s = {}
-    for photo in photos:
-        photo.set_md5()
-        print ("md5={}".format(photo.md5))
-        if photo.md5 in md5s:
-            md5s[photo.md5].append(photo)
-        else:
-            md5s[photo.md5] = [photo]
+        if args.action not in supported_actions:
+            raise Exception(("Action '{}' is not supported. "
+                             "Supported actions: {}.").format(
+                                 args.action, supported_actions))
 
-    duplicates = []
-    for md5 in md5s:
-        if len(md5s[md5]) > 1:
-            duplicates.append(md5s[md5])
+        self.args = args
 
-    return duplicates
-
-def delete_duplicates(duplicates):
-    for dup in duplicates:
-        dup_paths = sorted(get_paths(dup))
-        delete_paths = dup_paths[1:]
-        for path in delete_paths:
-            if os.system("rm '{}'".format(path)):
-                raise Exception("Failed to delete duplicate '{}'.".format(path))
+    def get_duplicate_photos(self):
+        md5s = {}
+        for photo in self.photos:
+            photo.set_md5()
+            if photo.md5 in md5s:
+                md5s[photo.md5].append(photo)
             else:
-                print("Deleted duplicate '{}'.".format(path))
-         
-def get_paths(photos):
-    photos_paths = []
-    for photo in photos:
-        photos_paths.append(photo.path)
-    return photos_paths
+                md5s[photo.md5] = [photo]
 
+        duplicates = []
+        for md5 in md5s:
+            if len(md5s[md5]) > 1:
+                duplicates.append(md5s[md5])
 
-def get_duplicates_str(duplicates):
-    duplicates_str = []
-    for dup in duplicates:
-        duplicates_str.append(get_paths(dup))
-    return duplicates_str
+        self.duplicates = duplicates
+        return duplicates
 
+    def delete_duplicates(self):
+        for dup in self.duplicates:
+            dup_paths = sorted(self.get_paths(dup))
+            delete_paths = dup_paths[1:]
+            for path in delete_paths:
+                if os.system("rm '{}'".format(path)):
+                    raise Exception("Failed to delete duplicate '{}'.".format(path))
+                else:
+                    print("Deleted duplicate '{}'.".format(path))
 
-def get_paths(photos):
-    paths = []
-    for photo in photos:
-        paths.append(photo.path)
+    @staticmethod             
+    def get_paths(photos):
+        photos_paths = []
+        for photo in photos:
+            photos_paths.append(photo.path)
+        return photos_paths
 
-    return paths
+    def get_duplicates_str(self):
+        duplicates_str = []
+        for dup in self.duplicates:
+            duplicates_str.append(self.get_paths(dup))
+        return duplicates_str
 
-def get_metadata(photos):
-    metadata = []
-    for photo in photos:
-        photo.set_metadata()
-        metadata.append(str(photo))
-    return metadata
+    def get_metadata(self):
+        metadata = []
+        for photo in self.photos:
+            photo.set_metadata()
+            metadata.append(str(photo))
+        return metadata
 
-def get_info(photos):
-    info = []
-    for photo in photos:
-        info.append(str(photo))
-    return info
+    def get_info(self):
+        info = []
+        for photo in self.photos:
+            info.append(str(photo))
+        return info
 
-def main():
-    args = commandline_argument_parser()
+    def main(self):
+        self.commandline_argument_parser()
 
-    photos = import_photos(args.dir_path)
+        self.photos = import_photos(self.args.dir_path)
 
-    print args
+        results = {"count": len(self.photos)}
 
-    results = {"count": len(photos)}
+        #if args.paths:
+        #    results["paths"] = get_paths(photos)
 
-    #if args.paths:
-    #    results["paths"] = get_paths(photos)
+        if self.args.action.lower() in ['duplicates']:
+            self.get_duplicate_photos()
+            results['duplicates'] = self.get_duplicates_str()
+            if self.args.delete:
+                self.delete_duplicates()
 
-    if args.action.lower() in ['duplicates']:
-        duplicates = duplicate_photos(photos)
-        results['duplicates'] = get_duplicates_str(duplicates)
-        if args.delete:
-            delete_duplicates(duplicates)
+        if self.args.metadata:
+            results["metadata"] = self.get_metadata()
 
-    if args.metadata:
-        results["metadata"] = get_metadata(photos)
+        if self.args.info:
+            results["info"] = self.get_info()
 
-    if args.info:
-        results["info"] = get_info(photos)
-
-    print(json.dumps(results))
+        print(json.dumps(results))
 
 
 if __name__ == "__main__":
-    main()
+    photos_cli = PhotosCLI()
+    photos_cli.main()
