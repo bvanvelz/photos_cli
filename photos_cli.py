@@ -16,7 +16,7 @@ class PhotosCLI:
         # Parse Arguments
         commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
 
-        supported_actions = ['duplicates']
+        supported_actions = ['duplicates', 'info', 'metadata']
         commandline_parser.add_argument('action',
                                         help="Supported actions: {}".format(
                                             supported_actions))
@@ -32,16 +32,6 @@ class PhotosCLI:
                                         required=False,
                                         action='store_true',
                                         help='Delete')
-
-        commandline_parser.add_argument('--info',
-                                        required=False,
-                                        action='store_true',
-                                        help='get photos basic info')
-
-        commandline_parser.add_argument('--metadata',
-                                        required=False,
-                                        action='store_true',
-                                        help='get photos metadata')
 
         # Return Parsesd Arguments
         args = commandline_parser.parse_args()
@@ -122,10 +112,10 @@ class PhotosCLI:
             if self.args.delete:
                 self.delete_duplicates()
 
-        if self.args.metadata:
+        if self.args.action.lower() in ['metadata']:
             results["metadata"] = self.get_metadata()
 
-        if self.args.info:
+        if self.args.action.lower() in ['info']:
             results["info"] = self.get_info()
 
         print(json.dumps(results))

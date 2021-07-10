@@ -44,8 +44,8 @@ class Photo():
 
     def __str__(self):
         # remove null values
-        #return str({k: v for k, v in self.__dict__.items() if v is not None})
-        return str(self.path)
+        return str({k: v for k, v in self.__dict__.items() if v is not None})
+        # return str(self.path)  # debug
 
     def set_md5(self):
         # TODO: fix
