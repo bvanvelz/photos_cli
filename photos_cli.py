@@ -11,7 +11,7 @@ class PhotosCLI:
         self.photos = None
         self.duplicates = None
 
-    def commandline_argument_parser(self):
+    def _commandline_argument_parser(self):
         """The function parses the command line arguments."""
         # Parse Arguments
         commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
@@ -43,7 +43,7 @@ class PhotosCLI:
 
         self.args = args
 
-    def get_duplicate_photos(self):
+    def _get_duplicate_photos(self):
         md5s = {}
         for photo in self.photos:
             photo.set_md5()
@@ -60,44 +60,47 @@ class PhotosCLI:
         self.duplicates = duplicates
         return duplicates
 
-    def delete_duplicates(self):
-        for dup in self.duplicates:
-            dup_paths = sorted(self.get_paths(dup))
-            delete_paths = dup_paths[1:]
-            for path in delete_paths:
+    def _delete_duplicates(self):
+        deleted_duplicates = []
+        for dups in self.duplicates:
+            delete_dups = sorted(dups)[1:]
+            delete_dups_paths = self._get_paths(delete_dups)
+            for path in delete_dups_paths:
                 if os.system("rm '{}'".format(path)):
                     raise Exception("Failed to delete duplicate '{}'.".format(path))
                 else:
                     print("Deleted duplicate '{}'.".format(path))
+            deleted_duplicates.extend(delete_dups)
+        return deleted_duplicates
 
     @staticmethod             
-    def get_paths(photos):
+    def _get_paths(photos):
         photos_paths = []
         for photo in photos:
             photos_paths.append(photo.path)
         return photos_paths
 
-    def get_duplicates_str(self):
+    def _get_duplicates_str(self):
         duplicates_str = []
         for dup in self.duplicates:
-            duplicates_str.append(self.get_paths(dup))
+            duplicates_str.append(self._get_paths(dup))
         return duplicates_str
 
-    def get_metadata(self):
+    def _get_metadata(self):
         metadata = []
         for photo in self.photos:
             photo.set_metadata()
             metadata.append(str(photo))
         return metadata
 
-    def get_info(self):
+    def _get_info(self):
         info = []
         for photo in self.photos:
             info.append(str(photo))
         return info
 
     def main(self):
-        self.commandline_argument_parser()
+        self._commandline_argument_parser()
 
         self.photos = import_photos(self.args.dir_path)
 
@@ -107,16 +110,17 @@ class PhotosCLI:
         #    results["paths"] = get_paths(photos)
 
         if self.args.action.lower() in ['duplicates']:
-            self.get_duplicate_photos()
-            results['duplicates'] = self.get_duplicates_str()
+            self._get_duplicate_photos()
+            results['duplicates'] = self._get_duplicates_str()
             if self.args.delete:
-                self.delete_duplicates()
+                deleted_duplicates = self._delete_duplicates()
+                results["duplicates_deleted"] = self._get_paths(deleted_duplicates)
 
         if self.args.action.lower() in ['metadata']:
-            results["metadata"] = self.get_metadata()
+            results["metadata"] = self._get_metadata()
 
         if self.args.action.lower() in ['info']:
-            results["info"] = self.get_info()
+            results["info"] = self._get_info()
 
         print(json.dumps(results))
 
