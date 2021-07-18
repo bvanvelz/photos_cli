@@ -2,6 +2,7 @@ import argparse
 import os
 from lib.photo import Photo, import_photos
 import json
+from PIL import Image
 
 
 class PhotosCLI:
@@ -16,7 +17,7 @@ class PhotosCLI:
         # Parse Arguments
         commandline_parser = argparse.ArgumentParser(description='A CLI tool to manage photos.')
 
-        supported_actions = ['duplicates', 'info', 'metadata']
+        supported_actions = ['duplicates', 'info', 'metadata', 'resize']
         commandline_parser.add_argument('action',
                                         help="Supported actions: {}".format(
                                             supported_actions))
@@ -32,6 +33,14 @@ class PhotosCLI:
                                         required=False,
                                         action='store_true',
                                         help='Delete')
+
+        commandline_parser.add_argument('--width', '-w',
+                                        required=False,
+                                        help='Width')
+
+        commandline_parser.add_argument('--height',
+                                        required=False,
+                                        help='Height')
 
         # Return Parsesd Arguments
         args = commandline_parser.parse_args()
@@ -99,6 +108,36 @@ class PhotosCLI:
             info.append(str(photo))
         return info
 
+    def _resize_photos(self):
+        if not self.args.width and not self.args.height:
+            raise Exception("To resize photos, specify either --width or "
+                            "--height or both.")
+
+        for photo in self.photos:
+            with Image.open(photo.path) as image:
+                if self.args.width and self.args.height:
+                    image_new = image.resize((int(self.args.width), int(self.args.height)))
+                    image_new.save("thumbs/" + photo.path)
+
+                elif self.args.width and not self.args.height:
+                    resize_ratio = float(self.args.width) / float(photo.width)
+                    height_new = photo.height * resize_ratio
+                    image_new = image.resize((int(self.args.width), int(height_new)))
+                    image_new.save("thumbs/" + photo.path)
+
+                elif self.args.height and not self.args.width:
+                    resize_ratio = float(self.args.height) / float(photo.height)
+                    width_new = photo.width * resize_ratio
+                    image_new = image.resize((int(width_new), int(self.args.height)))
+                    image_new.save("thumbs/" + photo.path)
+
+    # TODO
+    def _generate_thumbnails(self):
+        # with Image.open(infile) as im:
+        #     im.thumbnail(size)
+        #     im.save(file + ".thumbnail", "JPEG")
+        pass
+
     def main(self):
         self._commandline_argument_parser()
 
@@ -115,6 +154,9 @@ class PhotosCLI:
             if self.args.delete:
                 deleted_duplicates = self._delete_duplicates()
                 results["duplicates_deleted"] = self._get_paths(deleted_duplicates)
+
+        if self.args.action.lower() in ['resize']:
+            self._resize_photos()
 
         if self.args.action.lower() in ['metadata']:
             results["metadata"] = self._get_metadata()
